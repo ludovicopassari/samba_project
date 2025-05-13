@@ -13,7 +13,7 @@ SAMBA_SERVER=$3
 SAMBA_PASSWORD="SecurePass4" # Password di default, può essere cambiata in fase di esecuzione
 # Directory di base per il mount point
 
-BASE_DIR="/mnt/samba/sharare_point"
+BASE_DIR="~/Scrivania/share_point"
 
 # Crea la directory di base se non esiste
 if [ ! -d "$BASE_DIR" ]; then
