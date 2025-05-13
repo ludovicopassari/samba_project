@@ -24,7 +24,7 @@ def get_user_groups():
         groups = result.stdout.strip().split()
     
     # Filtra i gruppi, escludendo il gruppo con lo stesso nome dell'utente e 'smbusers'
-    filtered_groups = [group for group in groups if group != username and group != 'smbusers']
+    filtered_groups = [group for group in groups if group != username and group != 'smbusers' and group != 'sudo']
     
     # Ritorna la lista dei gruppi filtrati
     return filtered_groups
