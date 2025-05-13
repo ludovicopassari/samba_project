@@ -12,6 +12,7 @@ SAMBA_USER=$2
 SAMBA_SERVER=$3
 SAMBA_PASSWORD="SecurePass4" # Password di default, può essere cambiata in fase di esecuzione
 # Directory di base per il mount point
+
 BASE_DIR="/mnt/samba/sharare_point"
 
 # Crea la directory di base se non esiste
@@ -45,8 +46,8 @@ if mount | grep -q "$BASE_DIR"; then
 fi
 
 # Esegui il mount con le credenziali fornite
-sudo mount -t cifs "//$SAMBA_SERVER/$FOLDER_NAME" "$BASE_DIR/$FOLDER_NAME" -o username="$SAMBA_USER",password="$SAMBA_PASSWORD",vers=3.0
-sudo mount -t cifs "//$SAMBA_SERVER/private" "$BASE_DIR/private" -o username="$SAMBA_USER",password="$SAMBA_PASSWORD",vers=3.0
+sudo mount -t cifs "//$SAMBA_SERVER/$FOLDER_NAME" "$BASE_DIR/$FOLDER_NAME" -o username="$SAMBA_USER",password="$SAMBA_PASSWORD",uid=$(id -u), gid=$(id -g),vers=3.0
+sudo mount -t cifs "//$SAMBA_SERVER/private" "$BASE_DIR/private" -o username="$SAMBA_USER",password="$SAMBA_PASSWORD",uid=$(id -u), gid=$(id -g),vers=3.0
 
 # Verifica se il mount è riuscito
 if [ $? -eq 0 ]; then
