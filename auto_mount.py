@@ -7,7 +7,8 @@ import subprocess
 
 def get_user_groups():
     """
-    Ottiene tutti i gruppi a cui appartiene l'utente corrente
+    Ottiene tutti i gruppi a cui appartiene l'utente corrente,
+    escludendo il gruppo con lo stesso nome dell'utente e 'smbusers'
     """
     # Ottiene il nome dell'utente corrente
     username = pwd.getpwuid(os.getuid()).pw_name
@@ -22,8 +23,11 @@ def get_user_groups():
         # Alternativa usando l'output diretto di 'groups'
         groups = result.stdout.strip().split()
     
-    # Ritorna la lista dei gruppi
-    return groups
+    # Filtra i gruppi, escludendo il gruppo con lo stesso nome dell'utente e 'smbusers'
+    filtered_groups = [group for group in groups if group != username and group != 'smbusers']
+    
+    # Ritorna la lista dei gruppi filtrati
+    return filtered_groups
 
 def create_group_directories(base_dir=None):
     """
