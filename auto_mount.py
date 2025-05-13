@@ -35,7 +35,7 @@ def create_group_directories(base_dir=None):
     """
     # Se non è specificata una directory base, usa la home dell'utente
     if base_dir is None:
-        base_dir = os.path.expanduser("/mnt/samba")
+        base_dir = os.path.expanduser("~/Scrivania/samba_sharepoint")
     
     # Crea la directory base se non esiste
     if not os.path.exists(base_dir):
@@ -45,6 +45,7 @@ def create_group_directories(base_dir=None):
     # Ottieni i gruppi dell'utente
     groups = get_user_groups()
     private_dir = os.path.join(base_dir, "private")
+
     if not os.path.exists(private_dir):
         os.makedirs(private_dir)
         
