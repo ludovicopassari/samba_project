@@ -33,9 +33,9 @@ if [ ! -d "$BASE_DIR/private" ]; then
 fi
 
 # Richiedi la password Samba in modo sicuro
-echo -n "Inserisci la password Samba per l'utente $SAMBA_USER: "
-read -s SAMBA_PASSWORD
-echo ""
+#echo -n "Inserisci la password Samba per l'utente $SAMBA_USER: "
+#read -s SAMBA_PASSWORD
+#echo ""
 
 # Monta la condivisione Samba
 echo "Montaggio della condivisione Samba..."
@@ -45,8 +45,8 @@ if mount | grep -q "$BASE_DIR"; then
 fi
 
 # Esegui il mount con le credenziali fornite
-sudo mount -t cifs "//$SAMBA_SERVER/$FOLDER_NAME" "$BASE_DIR/$FOLDER_NAME" -o username="$SAMBA_USER",password="$SAMBA_PASSWORD",password="$SAMBA_PASSWORD",vers=3.0
-sudo mount -t cifs "//$SAMBA_SERVER/private" "$BASE_DIR/private" -o username="$SAMBA_USER",password="$SAMBA_PASSWORD",password="$SAMBA_PASSWORD",vers=3.0
+sudo mount -t cifs "//$SAMBA_SERVER/$FOLDER_NAME" "$BASE_DIR/$FOLDER_NAME" -o username="$SAMBA_USER",password="$SAMBA_PASSWORD",vers=3.0
+sudo mount -t cifs "//$SAMBA_SERVER/private" "$BASE_DIR/private" -o username="$SAMBA_USER",password="$SAMBA_PASSWORD",vers=3.0
 
 # Verifica se il mount è riuscito
 if [ $? -eq 0 ]; then
