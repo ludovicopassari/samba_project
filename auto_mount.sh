@@ -10,12 +10,28 @@ SAMBA_USER=$2
 SAMBA_SERVER=$3
 SAMBA_PASSWORD="SecurePass4"
 
-BASE_DIR="$HOME/Scrivania/share_point"  # ✅ Fix tilde
+BASE_DIR="$HOME/Scrivania/share_point"  # Modifica il percorso base se necessario
 
+# Controlla se il pacchetto cifs-utils è installato
+if ! dpkg -l | grep -q cifs-utils; then
+    echo "Installazione di cifs-utils..."
+    sudo apt-get update
+    sudo apt-get install -y cifs-utils
+fi
+
+# Controlla se il pacchetto smbclient è installato
+if ! dpkg -l | grep -q smbclient; then
+    echo "Installazione di smbclient..."
+    sudo apt-get update
+    sudo apt-get install -y smbclient
+fi
+
+# controlla se la directory di base esiste
 if [ ! -d "$BASE_DIR" ]; then
     sudo mkdir -p "$BASE_DIR"
     echo "Directory $BASE_DIR creata."
 fi
+
 
 if [ ! -d "$BASE_DIR/$FOLDER_NAME" ]; then
     sudo mkdir -p "$BASE_DIR/$FOLDER_NAME"

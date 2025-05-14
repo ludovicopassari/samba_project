@@ -1,7 +1,4 @@
 #!/bin/bash
-# Script di configurazione Samba per una PMI di circa 20 dipendenti
-# con reparti: Amministrazione, Risorse Umane e IT
-
 # Parte 1: Installazione del sistema e di Samba
 echo "Installazione di Samba e pacchetti necessari..."
 apt update
@@ -70,39 +67,40 @@ cat > /etc/samba/smb.conf << 'EOL'
    log file = /var/log/samba/log.%m
    max log size = 50
    logging = file
-   security = user
+   security = user #specifica che ogni utente deve autenticarsi 
    encrypt passwords = true
-   passdb backend = tdbsam
+   passdb backend = tdbsam # specifica il backend per la gestione delle password
    obey pam restrictions = yes
-   unix password sync = yes
+   unix password sync = yes # sincronizza le password Unix e Samba. Quando un utente cambia la password Samba, viene cambiata anche quella Unix
    passwd program = /usr/bin/passwd %u
-   passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .
+   passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* . #script per la sincronizzazione delle password. 
    pam password change = yes
-   map to guest = bad user
-   usershare allow guests = no
+   map to guest = bad user # mappa gli utenti non autenticati come guest. bad user significa che se l'utente non esiste, Samba lo mappa come guest
+   usershare allow guests = no # non permette la condivisione di file da parte degli utenti non autenticati
    dns proxy = no
    
    # Impostazioni di performance
-   socket options = TCP_NODELAY IPTOS_LOWDELAY
-   read raw = yes
+   socket options = TCP_NODELAY IPTOS_LOWDELAY # Imposta le opzioni del socket per migliorare le prestazioni. IPTOS_LOWDELAY è un'opzione per il protocollo TCP che riduce la latenza
+   read raw = yes # Abilita la lettura raw per migliorare le prestazioni. Permette ai client di leggere daati in formatoraw, evitando l'overhead del protocollo SMB
    write raw = yes
-   oplocks = yes
-   max xmit = 65535
-   dead time = 15
-   getwd cache = yes
+   oplocks = yes # Abilita gli oplocks per migliorare le prestazioni. Gli oplocks sono un meccanismo di caching che permette ai client di mantenere una copia locale dei file aperti. Quando un altro client cerca di accedere a quel file, Samba revoca il lock
+   max xmit = 65535 # Imposta la dimensione massima del pacchetto di dati che Samba può inviare. 65535 è il valore massimo. Supponiamo che la rete sia veloce ed affidabile.
+   dead time = 15 # Imposta il tempo di inattività dopo il quale Samba chiude una connessione. 15 minuti è un valore ragionevole per evitare connessioni zombie
+   getwd cache = yes # Abilita la cache della directory di lavoro. Questo migliora le prestazioni quando gli utenti navigano tra le directory condivise
 
 # Condivisioni pubbliche
-[public]
-   comment = Cartella Pubblica
-   path = /srv/samba/shares/public
-   browseable = yes
+# nome della condivisione
+[public] 
+   comment = Cartella Pubblica # Descrizione della condivisione. Verra mostrata agli utenti quando accedono alla condivisione
+   path = /srv/samba/shares/public # Percorso della directory condivisa sul server.
+   browseable = yes # Rende la cartella visibile nella rete. Se fosse no, la condivisione non sarebbe elencata, ma accessibile se conosciuta (es: \\server\public).
    read only = no
    writeable = yes
-   guest ok = no
-   valid users = @smbusers
-   create mask = 0775
-   directory mask = 0775
-   force group = smbusers
+   guest ok = no # Permette l'accesso come guest. Se no, gli utenti devono autenticarsi
+   valid users = @smbusers # Permette l'accesso solo agli utenti del gruppo smbusers. @ indica un gruppo, senza @ indica un utente specifico
+   create mask = 0775 # Permessi per i file creati nella condivisione. 0775 significa che il proprietario e il gruppo hanno permessi di lettura, scrittura ed esecuzione, mentre gli altri hanno solo permessi di lettura ed esecuzione
+   directory mask = 0775 # Permessi per le directory create nella condivisione. 0775 significa che il proprietario e il gruppo hanno permessi di lettura, scrittura ed esecuzione, mentre gli altri hanno solo permessi di lettura ed esecuzione
+   force group = smbusers # Forza il gruppo di tutti i file e le directory creati nella condivisione a essere il gruppo smbusers. Questo è utile per garantire che tutti gli utenti del gruppo abbiano accesso ai file creati da altri membri del gruppo
 
 [documents]
    comment = Documenti Aziendali
@@ -198,7 +196,7 @@ chown $USERNAME:$USERNAME /srv/samba/shares/private/$USERNAME
 chmod 700 /srv/samba/shares/private/$USERNAME
 
 # Aggiunge l'utente Samba e imposta la password
-echo -e "$PASSWORD\n$PASSWORD" | smbpasswd -a $USERNAME
+echo -e "$PASSWORD\n$PASSWORD" | smbpasswd -a $USERNAME # Aggiunge l'utente  specificato al database di autenticazione di Samba e imposta la password. Simula l'inserimento manuale della password due volte (Samba la richiede due volte per conferma).
 
 echo "Utente $USERNAME creato e aggiunto al gruppo $GROUP"
 EOL
@@ -236,6 +234,13 @@ chmod +x /usr/local/bin/add_example_users.sh
 
 # Parte 8: Avvio e abilitazione del servizio
 echo "Avvio e abilitazione del servizio Samba..."
+
+# SMB e NMB sono i servizi principali di Samba. 
+#smbd è il cuore del servizio Samba. Gestisce il protocollo SMB/CIFS e fornisce le funzionalità di condivisione dei file. Lavora sulla porta TCP 445 e supporta i protocolli SMB1, SMB2 e SMB3.
+#nmbd è il servizio che gestisce la risoluzione dei nomi NetBIOS. È responsabile della registrazione e della risoluzione dei nomi NetBIOS in indirizzi IP.
+# nmbd permette a Samba di annunciare la sua presenza sulla rete e di risolvere i nomi NetBIOS in indirizzi IP. Questo è particolarmente utile in reti miste (Windows e Linux) dove i client Windows utilizzano NetBIOS per la scoperta dei server Samba.
+# nmbd utilizza le porte UDP 137 e 138. Esso è necessario se si vuole usare NetBIOS e se si sta utilizzando Samba in una rete mista con Windows. Se si utilizza solo SMB2 o SMB3, nmbd non è strettamente necessario.
+# In reti moderne con SMB2/3 e DNS, nmbd è spesso superfluo. smbd da solo può bastare, soprattutto se i client si connettono direttamente tramite IP o hostname DNS (\\nome-server\condivisione).
 systemctl start smbd nmbd
 systemctl enable smbd nmbd
 
